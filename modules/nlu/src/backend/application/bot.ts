@@ -6,7 +6,7 @@ import { ScopedDefinitionsService } from './definitions-service'
 import { BotDoesntSpeakLanguageError } from './errors'
 import { ScopedModelRepository } from './infrastructure/model-repository'
 import { ScopedPredictionHandler } from './prediction-handler'
-import { Predictor, ProgressCallback, Trainer } from './typings'
+import { Bot as IBot, NeedsTrainingCallback, ProgressCallback } from './typings'
 
 interface BotDefinition {
   botId: string
@@ -14,7 +14,7 @@ interface BotDefinition {
   languages: string[]
 }
 
-export class Bot implements Trainer, Predictor {
+export class Bot implements IBot {
   private _botId: string
   private _defaultLanguage: string
   private _languages: string[]
@@ -46,11 +46,18 @@ export class Bot implements Trainer, Predictor {
     )
   }
 
-  public async mount() {
+  public async mount(needsTrainingListener: NeedsTrainingCallback) {
     await this._modelRepo.initialize()
-    await this._defService.initialize()
 
-    return Promise.map(this._languages, async language => {
+    await this._defService.initialize(async modelId => {
+      if (this._modelRepo.hasModel(modelId)) {
+        await this.load(modelId)
+        return
+      }
+      await needsTrainingListener(modelId.languageCode)
+    })
+
+    await Promise.map(this._languages, async language => {
       const modelId = await this._defService.getLatestModelId(language)
       const model = await this._modelRepo.getModel(modelId)
       if (model) {

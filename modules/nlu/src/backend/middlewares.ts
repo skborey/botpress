@@ -88,7 +88,7 @@ export const registerMiddlewares = (bp: typeof sdk, app: NLUApplication) => {
   })
 }
 
-export const removeMiddlewares = async (bp: typeof sdk) => {
+export const removeMiddlewares = (bp: typeof sdk) => {
   bp.events.removeMiddleware(PREDICT_MW)
   bp.events.removeMiddleware(ELECT_MW)
 }

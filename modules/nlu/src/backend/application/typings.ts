@@ -7,7 +7,9 @@ export interface BotDefinition {
   seed: number
 }
 
-export type ProgressCallback = (p: number) => Promise<void>
+export type ProgressCallback = (progress: number) => Promise<void>
+export type NeedsTrainingCallback = (language: string) => Promise<void>
+export type DirtyModelCallback = (modelId: NLU.ModelId) => Promise<void>
 
 export interface Trainer {
   train(language: string, progressCallback: ProgressCallback): Promise<NLU.ModelId>
@@ -17,6 +19,11 @@ export interface Trainer {
 
 export interface Predictor {
   predict(text: string, anticipatedLanguage?: string): Promise<EventUnderstanding>
+}
+
+export interface Bot extends Trainer, Predictor {
+  mount(listener: NeedsTrainingCallback): Promise<void>
+  unmount(): Promise<void>
 }
 
 export type EventUnderstanding = Omit<IO.EventUnderstanding, 'includedContexts' | 'detectedLanguage'> & {
@@ -36,4 +43,10 @@ export interface TrainingQueue {
   queueTraining(trainId: TrainingId, trainer: Trainer): Promise<void>
   cancelTraining(trainId: TrainingId): Promise<void>
   getTraining(trainId: TrainingId): Promise<NLU.TrainingSession>
+}
+
+export interface BotFactory {
+  initialize(): Promise<void>
+  teardown(): Promise<void>
+  makeBot(botId: string): Promise<Bot>
 }
