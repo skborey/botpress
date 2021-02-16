@@ -22,6 +22,10 @@ To act when an intent is detected, we created a node for each transition and add
 
 ![](assets/intent-matching-switch-case.png)
 
+Click train the new intent
+
+![](assets/intent-matching-train-chatbot.png)
+
 Now when we test the bot, we get the expected result.
 
 ![](assets/intent-matching-switch-conversation.png)
